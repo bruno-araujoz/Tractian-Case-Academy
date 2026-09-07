@@ -8,6 +8,13 @@ de vibração), este repositório entrega:
 2. **Um framework mínimo de avaliação** com um experimento controlado A/B sobre
    uma cláusula do prompt do sistema.
 
+> **Para avaliação — não é preciso rodar nada.** O experimento completo já está
+> versionado: **`results/`** (`summary_A_vs_B.md`, `comparison.png`,
+> `confusion_{A,B}.csv`, `scores.csv`, `episodes.jsonl`, `run_config.json`) e
+> **`traces/`** (1 JSONL por episódio, com o payload completo de cada chamada à
+> API). A Seção 7 resume os números. Reexecutar (`bash run.sh experiment`) exige
+> uma chave LLM com cota diária disponível — ver Seção 5.
+
 ---
 
 ## 1. Problema

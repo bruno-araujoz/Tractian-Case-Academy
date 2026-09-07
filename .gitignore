@@ -1,0 +1,12 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.run/
+.pytest_cache/
+inteli-tractian-project/api/.venv/
+inteli-tractian-project/.run/
+
+# runtime logs (nao versionados); results/ e traces/ SAO versionados (evidencia do experimento)
+results/runner.stdout.log
+results/runner.stderr.log

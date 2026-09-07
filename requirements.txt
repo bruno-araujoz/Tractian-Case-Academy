@@ -1,0 +1,11 @@
+# Dependencias do agente + framework de avaliacao (Parte 1 e Parte 2).
+# A API FastAPI fornecida tem suas proprias deps em inteli-tractian-project/api/pyproject.toml
+# (instaladas junto: `pip install -e "inteli-tractian-project/api[dev]"`).
+# Python 3.10+ (testado em 3.12).
+
+httpx==0.28.1
+openai==3.8.0            # SDK OpenAI-compativel; usado contra o endpoint da Groq
+pandas==3.0.5
+matplotlib==3.11.1
+tabulate==0.10.0         # DataFrame.to_markdown nos relatorios
+pyarrow==25.0.1          # leitura de parquet (tambem dep da API)

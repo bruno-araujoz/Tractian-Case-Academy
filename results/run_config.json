@@ -1,0 +1,22 @@
+{
+  "gerado_em": "2026-09-06T21:09:56-0300",
+  "provider": "gemini",
+  "model": "gemini-flash-lite-latest",
+  "temperature": 0.7,
+  "trials": 3,
+  "conditions": [
+    "A",
+    "B"
+  ],
+  "n_casos": 17,
+  "seed_default": "complete",
+  "seed_by_case": {},
+  "condicao_A": "prompt base",
+  "condicao_B": "prompt base + clausula de verificacao de baseline.state/detection_mode",
+  "hipotese_H1": "impor verificacao do estado do baseline antes de aceitar um insight reduz decisoes temerarias sem aumento proporcional de escalonamento indevido",
+  "agent_call_budget": 3,
+  "n_chaves_llm": 1,
+  "episodios_ok": 102,
+  "erros": 0,
+  "duracao_min": 43.7
+}

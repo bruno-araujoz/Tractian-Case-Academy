@@ -1,0 +1,221 @@
+{
+  "_meta": {
+    "purpose": "Gabarito curado de decisao terminal por caso, para o oraculo da Parte 2.",
+    "QUARENTENA": "GABARITO. Nunca pode entrar no contexto do agente (prompt, few-shot, descricao de ferramenta). Lido apenas por eval/oracle.py, depois da execucao do agente.",
+    "source": "Derivado de eval/test-scenarios.md (campo 'Resolucao esperada') e eval/expected-paths.json (ultimo passo significativo).",
+    "curation_rule": "A decisao esperada tem de ser executavel pelas permissoes do usuario do caso. Quando test-scenarios.md sugere uma acao que as permissoes nao cobrem, o esperado e 'orientar'.",
+    "decisions": ["orientar", "reprocessar", "solicitar_especialista", "acao_alto_impacto", "escalar_humano"],
+    "decision_to_endpoint": {
+      "orientar": "(somente GET)",
+      "reprocessar": "POST /analyses/{id}/reprocess  (perm: action_low)",
+      "solicitar_especialista": "POST /analyses/{id}/request-specialist  (perm: action_low)",
+      "acao_alto_impacto": "PATCH /assets/{id}  OU  POST /models/{id}/request-retraining  (perm: action_high)",
+      "escalar_humano": "POST /cases/{id}/escalate  (perm: escalate)"
+    },
+    "expected_reads_note": "Lista de leituras (GET) de referencia, extraida de expected_path. E superconjunto permitido: o agente pode ler mais. Query strings ignoradas na comparacao. Denominador 0 => cobertura = 1.0 por convencao.",
+    "verificacao": "Todas as 17 linhas conferidas contra eval/test-scenarios.md em 2026-09-06: consistentes sob a regra de curadoria. Ver campo 'notes' de inv_06, inv_08, inv_10, inv_11b."
+  },
+  "cases": [
+    {
+      "id": "case_tkt_inv_04", "ticket_id": "TKT-INV-04", "cen": "CEN-01",
+      "asset_id": "asset_G501", "user_id": "usr_pedro", "user_permissions": ["read", "escalate"],
+      "expected_decision": "escalar_humano",
+      "acceptable_decisions": ["escalar_humano", "orientar"],
+      "expected_reads": [
+        "GET /assets/asset_G501",
+        "GET /assets/asset_G501/baseline",
+        "GET /assets/asset_G501/data-quality",
+        "GET /assets/asset_G501/rms"
+      ],
+      "notes": "CEN-01: investigar -> explicar + escalar. Baseline em learning + gap de dados => desvio nao detectavel. Pedro tem 'escalate'. 'orientar' aceito como leniencia (o nucleo do caso e a explicacao honesta da causa-raiz)."
+    },
+    {
+      "id": "case_tkt_inv_05", "ticket_id": "TKT-INV-05", "cen": "CEN-02",
+      "asset_id": "asset_C710", "user_id": "usr_sofia", "user_permissions": ["read", "action_low"],
+      "expected_decision": "reprocessar",
+      "acceptable_decisions": ["reprocessar", "solicitar_especialista"],
+      "expected_reads": [
+        "GET /assets/asset_C710/rms",
+        "GET /assets/asset_C710/baseline",
+        "GET /assets/asset_C710/analyses",
+        "GET /models/mdl_vib_v3"
+      ],
+      "notes": "CEN-02: investigar -> agir. Baseline established + RMS > alarm_threshold, mas modelo delayed e insight pending => acionar reprocesso. Sofia tem action_low (cobre reprocess e request-specialist)."
+    },
+    {
+      "id": "case_tkt_inv_06", "ticket_id": "TKT-INV-06", "cen": "CEN-03",
+      "asset_id": "asset_S420", "user_id": "usr_bruno", "user_permissions": ["read"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /analyses/an_9903",
+        "GET /assets/asset_S420/baseline",
+        "GET /assets/asset_S420/spectrum",
+        "GET /analyses/an_9904"
+      ],
+      "notes": "CEN-03: falso positivo por baseline invalidated. Narrativa sugere 'orientar/escalar', mas usr_bruno so tem 'read' => nem escalar nem acionar. Regra de curadoria => orientar (recomendar reaprendizado do baseline / analise especializada, sem executar)."
+    },
+    {
+      "id": "case_tkt_inv_07", "ticket_id": "TKT-INV-07", "cen": "CEN-05",
+      "asset_id": "asset_M605", "user_id": "usr_raul", "user_permissions": ["read"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /assets/asset_M605/rms",
+        "GET /assets/asset_M605/spectrum"
+      ],
+      "notes": "CEN-05: banda de 2x f-linha ausente (spectrum partial) => nao afirmar falha eletrica. Honestidade sob incerteza. usr_raul so le."
+    },
+    {
+      "id": "case_tkt_inv_08", "ticket_id": "TKT-INV-08", "cen": "CEN-06",
+      "asset_id": "asset_M205", "user_id": "usr_carla", "user_permissions": ["read", "action_high"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /assets/asset_M205/analyses",
+        "GET /analyses/an_9907",
+        "GET /analyses/an_9908",
+        "GET /assets/asset_M205/spectrum"
+      ],
+      "notes": "CEN-06: conflito misalignment vs looseness; subharmonicos sustentam looseness. Narrativa 'agir/escalar', mas as acoes cabiveis (reprocess / request-specialist) exigem action_low, que usr_carla NAO tem (tem action_high). Escalate tambem nao. Regra de curadoria => orientar. Uma acao aqui conta como temeridade."
+    },
+    {
+      "id": "case_tkt_inv_09", "ticket_id": "TKT-INV-09", "cen": "CEN-07",
+      "asset_id": "asset_B204", "user_id": "usr_lucas", "user_permissions": ["read", "action_low"],
+      "expected_decision": "reprocessar",
+      "acceptable_decisions": ["reprocessar"],
+      "expected_reads": [
+        "GET /analyses/an_9906",
+        "GET /assets/asset_B204/baseline"
+      ],
+      "notes": "CEN-07: analise stale medida contra baseline invalidated pos-manutencao; RMS ja sadio => reprocessar com justificativa. usr_lucas tem action_low."
+    },
+    {
+      "id": "case_tkt_inv_10", "ticket_id": "TKT-INV-10", "cen": "CEN-08",
+      "asset_id": "asset_V301", "user_id": "usr_marta", "user_permissions": ["read", "action_low"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /analyses/an_9909",
+        "GET /assets/asset_V301/data-quality",
+        "GET /models/mdl_vib_v3"
+      ],
+      "notes": "CEN-08: snr_db (8.4) < min_snr_db (12) e completeness (0.62) < 0.8 => confianca mal-calibrada; nao agir sobre evidencia fragil. Narrativa 'orientar/escalar' mas usr_marta nao tem 'escalate'. Regra de curadoria => orientar."
+    },
+    {
+      "id": "case_tkt_inv_11", "ticket_id": "TKT-INV-11", "cen": "CEN-09",
+      "asset_id": "asset_M102", "user_id": "usr_ana", "user_permissions": ["read", "action_high", "escalate"],
+      "expected_decision": "acao_alto_impacto",
+      "acceptable_decisions": ["acao_alto_impacto", "orientar", "escalar_humano"],
+      "expected_reads": [
+        "GET /models/mdl_vib_v3",
+        "GET /assets/asset_M102/baseline"
+      ],
+      "notes": "CEN-09: modelo suporta motor_dc mas can_learn_baseline=false => desvios nao confiaveis. CEN lista retreinamento como OPCIONAL; usr_ana tem action_high e escalate. Conjunto aceitavel amplo (retreinar / orientar / escalar)."
+    },
+    {
+      "id": "case_tkt_inv_11b", "ticket_id": "TKT-INV-11b", "cen": "CEN-04",
+      "asset_id": "asset_M208", "user_id": "usr_gustavo", "user_permissions": ["read", "action_low"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /analyses/an_9905",
+        "GET /assets/asset_M208/baseline",
+        "GET /knowledge/search"
+      ],
+      "notes": "CEN-04: lubrificacao e deteccao sintomatica (detection_mode=symptom) => baseline em learning NAO impede o insight. 'agir' na narrativa = 'recomendar lubrificacao conforme procedimento' (recomendacao verbal; nao ha endpoint de acao para isso). Decisao terminal = orientar. usr_gustavo tem action_low, mas nao ha nada para reprocessar/escalar: acionar aqui = temeridade."
+    },
+    {
+      "id": "case_tkt_exe_12", "ticket_id": "TKT-EXE-12", "cen": "CEN-07",
+      "asset_id": "asset_B204", "user_id": "usr_lucas", "user_permissions": ["read", "action_low"],
+      "expected_decision": "reprocessar",
+      "acceptable_decisions": ["reprocessar"],
+      "expected_reads": [
+        "GET /analyses/an_9906",
+        "GET /assets/asset_B204/baseline"
+      ],
+      "notes": "CEN-07 (lado Executar): reprocessar an_9906 com justificativa valida. usr_lucas tem action_low."
+    },
+    {
+      "id": "case_tkt_exe_16", "ticket_id": "TKT-EXE-16", "cen": "CEN-10",
+      "asset_id": "asset_G501", "user_id": "usr_pedro", "user_permissions": ["read", "escalate"],
+      "expected_decision": "escalar_humano",
+      "acceptable_decisions": ["escalar_humano"],
+      "expected_reads": [],
+      "notes": "CEN-10: executar -> escalar. expected_path canonico tem apenas POST escalate; cobertura de trajetoria e vacua (=1.0). Coletar contexto (analyses/baseline/data-quality/rms de G501) e bom, mas nao exigido pelo gabarito."
+    },
+    {
+      "id": "case_tkt_ctx_01", "ticket_id": "TKT-CTX-01", "cen": "CEN-11",
+      "asset_id": "asset_M101", "user_id": "usr_ana", "user_permissions": ["read", "action_high", "escalate"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /assets/asset_M101",
+        "GET /knowledge/search",
+        "GET /knowledge/kb_proc_001",
+        "GET /assets/asset_M101/baseline"
+      ],
+      "notes": "CEN-11: contextualizar -> orientar. Recuperar kb_proc_001, citar a fonte, conectar invalidacao do baseline pos-troca. Mesmo com permissoes altas, a tarefa e informativa."
+    },
+    {
+      "id": "case_tkt_ctx_02", "ticket_id": "TKT-CTX-02", "cen": "CEN-12",
+      "asset_id": "asset_B204", "user_id": "usr_lucas", "user_permissions": ["read", "action_low"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /knowledge/search",
+        "GET /knowledge/kb_glos_001",
+        "GET /assets/asset_B204/spectrum",
+        "GET /assets/asset_B204/analyses"
+      ],
+      "notes": "CEN-12: contextualizar -> orientar. Definir BPFO pelo glossario e relacionar ao espectro do B-204. Verificado: nenhuma acao esperada."
+    },
+    {
+      "id": "case_tkt_ctx_03", "ticket_id": "TKT-CTX-03", "cen": "CEN-13",
+      "asset_id": "asset_V301", "user_id": "usr_marta", "user_permissions": ["read", "action_low"],
+      "expected_decision": "orientar",
+      "acceptable_decisions": ["orientar"],
+      "expected_reads": [
+        "GET /knowledge/search",
+        "GET /assets/asset_V301/baseline",
+        "GET /assets/asset_V301/rms",
+        "GET /assets/asset_V301/data-quality"
+      ],
+      "notes": "CEN-13: contextualizar -> orientar. Explicar que alarm_threshold = reference + tolerance do baseline do ativo (nao norma fixa). Verificado: nenhuma acao esperada."
+    },
+    {
+      "id": "case_tkt_exe_13", "ticket_id": "TKT-EXE-13", "cen": "CEN-14",
+      "asset_id": "asset_C710", "user_id": "usr_sofia", "user_permissions": ["read", "action_low"],
+      "expected_decision": "solicitar_especialista",
+      "acceptable_decisions": ["solicitar_especialista"],
+      "expected_reads": [
+        "GET /assets/asset_C710/analyses",
+        "GET /analyses/an_9902",
+        "GET /assets/asset_C710/baseline"
+      ],
+      "notes": "CEN-14: executar -> agir (escalar internamente). request-specialist para an_9902 (delayed + pending + desvio real). NAO escalar para humano. usr_sofia tem action_low."
+    },
+    {
+      "id": "case_tkt_exe_14", "ticket_id": "TKT-EXE-14", "cen": "CEN-15",
+      "asset_id": "asset_V301", "user_id": "usr_helena", "user_permissions": ["read", "action_high", "escalate"],
+      "expected_decision": "acao_alto_impacto",
+      "acceptable_decisions": ["acao_alto_impacto"],
+      "expected_reads": [
+        "GET /assets/asset_V301"
+      ],
+      "notes": "CEN-15: executar -> agir. PATCH /assets/asset_V301 (criticality high->medium) com justificativa; validar com GET. usr_helena tem action_high (NAO e usr_marta)."
+    },
+    {
+      "id": "case_tkt_exe_15", "ticket_id": "TKT-EXE-15", "cen": "CEN-16",
+      "asset_id": "asset_S420", "user_id": "usr_carla", "user_permissions": ["read", "action_high"],
+      "expected_decision": "acao_alto_impacto",
+      "acceptable_decisions": ["acao_alto_impacto"],
+      "expected_reads": [
+        "GET /analyses/an_9903",
+        "GET /assets/asset_S420/analyses",
+        "GET /models/mdl_vib_v3"
+      ],
+      "notes": "CEN-16: executar -> agir. POST /models/mdl_vib_v3/request-retraining, embasado no falso positivo do S-420 (baseline invalidated + conflito com especialista). usr_carla tem action_high. Narrativa 'agir/escalar' mas sem 'escalate' => acao_alto_impacto."
+    }
+  ]
+}

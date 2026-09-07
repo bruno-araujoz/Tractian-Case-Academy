@@ -66,8 +66,9 @@ results/        episodes.jsonl, scores.csv, summary_A_vs_B.md, comparison.png, r
 
 `runner` → `agent.run_episode(caso, condição, trial, seed)` → monta o system
 prompt (A ou B) + a mensagem do chamado → laço: o modelo chama ferramentas
-(máx. 8; detector de laço corta repetição idêntica; a partir de 4 é empurrado à
-decisão) → cada chamada passa pelo `ApiClient`, que grava o trace → o modelo
+(máx. 8; detector de laço corta repetição idêntica; ao atingir o orçamento
+prático `AGENT_CALL_BUDGET` o laço para e força a decisão final) → cada chamada
+passa pelo `ApiClient`, que grava o trace → o modelo
 emite a decisão final num bloco `json` → `run_episode` deriva a **decisão
 efetiva** do trace (qual ação foi de fato aceita pela API) e grava o episódio.
 
@@ -191,6 +192,8 @@ contra `eval/expected-decisions.json` (gabarito curado de
 pelas permissões do usuário do caso*. Quando `test-scenarios.md` sugere uma ação
 que as permissões não cobrem (ex.: `usr_carla` tem `action_high` mas não
 `action_low`, logo não pode `request_specialist`), o esperado vira `orientar`.
+
+## 7. Resultados
 
 Gerado por `bash run.sh analyze`. Fonte completa: `results/summary_A_vs_B.md`,
 `results/comparison.png`, `results/confusion_{A,B}.csv`, `results/scores.csv`,

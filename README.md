@@ -35,7 +35,7 @@ age além do que deveria (temeridade) ou escala o que era resolvível (preguiça
 
 Trilha: **agente + avaliação** (Partes 1 e 2 do enunciado).
 
-Recorte consciente (restrição de prazo — 1 dia):
+Recorte consciente:
 
 - Interação **single-turn**: uma mensagem entra, o agente investiga e decide. Sem
   conversa, sem elicitação.
@@ -79,18 +79,6 @@ passa pelo `ApiClient`, que grava o trace → o modelo
 emite a decisão final num bloco `json` → `run_episode` deriva a **decisão
 efetiva** do trace (qual ação foi de fato aceita pela API) e grava o episódio.
 
-### Nota de arquitetura (descopo consciente)
-
-A arquitetura **projetada** previa: (a) uma **camada MCP** expondo os 18
-endpoints como ferramentas de um servidor MCP reutilizável; (b) um **grafo de
-estados** com um nó de **elicitação** (perguntar ao solicitante quando o chamado
-é ambíguo) e nós separados de investigação / decisão / ação / verificação.
-
-A implementação **entregue** é uma versão reduzida: tool-calling nativo do SDK
-num laço único, single-turn, sem MCP e sem grafo. Isso é **decisão consciente
-por restrição de prazo**, não omissão — o laço único cobre os mesmos 8 itens de
-rubrica com muito menos superfície de código, e a evolução natural (Seção 9) é
-reintroduzir MCP e o grafo.
 
 ## 4. Instalação e execução
 
